@@ -1,20 +1,33 @@
 #!/bin/bash
 
-if ! command -v 7z
-then
-	echo "Installing p7zip-rar..."
-	sudo apt install -y p7zip-rar >> p7zip_rar_install.log
-	printf "\x1b[33mInstallation complete\x1b[0m\n"
-	echo "Installation log created: ./p7zip_rar_install.log"
-fi
+# Color definitions
 
-if [ $1 = a ]
-then
-	7z a -t7z $2.7z $2
-elif [ $1 = e ]
-then
-	7z e $2 -o$3
-else
-	echo "invalid arguments"
-	exit 1
-fi
+reset="\x1b[0m"
+green="\x1b[38;5;47m"
+red="\x1b[38;5;196m"
+blue="\x1b[38;5;27m"
+yellow="\x1b[38;5;220m"
+
+# log files
+suclog=/var/log/archive_script.log
+errlog=/var/log/archive_script_err.log
+
+# function to check exit code
+check_exit_code(){
+  if [ $? -ne 0 ]
+  then
+    echo "An error occurred, (exit code: $?). Check $errlog for more details"
+  fi
+}
+
+# function to check for 7z command
+check_7z(){
+	if ! command -v 7z
+	then
+		echo "installing p7zip-rar..."
+		sudo apt install p7zip-rar >>$suclog 2>>$errlog
+		check_exit_code
+	fi
+}
+
+printf "\t"$green"Menu-based archive script"$reset"\n"
