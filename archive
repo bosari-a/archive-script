@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# exiting script loop
+
+fin=0
+
 # Color definitions
 
 reset="\x1b[0m"
@@ -9,6 +13,7 @@ blue="\x1b[38;5;27m"
 yellow="\x1b[38;5;220m"
 
 # log files
+
 suclog=/var/log/archive_script.log
 errlog=/var/log/archive_script_err.log
 
@@ -30,4 +35,25 @@ check_7z(){
 	fi
 }
 
-printf "\t"$green"Menu-based archive script"$reset"\n"
+check_7z
+
+while [ $fin -ne 0 ]
+do
+	printf "\n\t"$green"Menu-based archive script"$reset"\n"
+
+	printf "\t"$blue"1 - Archive (both files and directories)"$reset"\n"
+	printf "\t"$blue"2 - extract (both files and directories)"$reset"\n"
+
+	printf "\t"$blue"Enter option (e.g. 1 to archive): "$reset
+
+	read opt
+
+	case $opt in
+		1) printf "\t"$blue"Enter path to file or dir: "$reset
+		   read path
+		   files=$(basename $path)
+		   7z a -t7z $files.7z $path
+done
+
+
+
