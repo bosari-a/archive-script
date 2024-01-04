@@ -1,59 +1,96 @@
 #!/bin/bash
 
-# exiting script loop
-
-fin=0
-
 # Color definitions
 
 reset="\x1b[0m"
 green="\x1b[38;5;47m"
 red="\x1b[38;5;196m"
-blue="\x1b[38;5;27m"
+blue="\x1b[38;5;75m"
 yellow="\x1b[38;5;220m"
 
-# log files
 
-suclog=/var/log/archive_script.log
-errlog=/var/log/archive_script_err.log
+# check for path argument
+
+if [ ! "$1" ]
+then
+	printf "\n\t"$red"Incorrect usage: must include path to file or directory."$reset"\n"
+	printf "\texamples:\n"$yellow"\t\tarchive ./my_movies/\n\t\tarchive ./some_file.txt\n\t\tarchive ./some_archive.7z"$reset"\n"
+	exit 1
+fi
 
 # function to check exit code
 check_exit_code(){
   if [ $? -ne 0 ]
   then
-    echo "An error occurred, (exit code: $?). Check $errlog for more details"
+    echo "An error occurred, (exit code: $?)."
   fi
 }
 
 # function to check for 7z command
-check_7z(){
-	if ! command -v 7z
+check_cmd(){
+	if ! command -v "$1"
 	then
 		echo "installing p7zip-rar..."
-		sudo apt install p7zip-rar >>$suclog 2>>$errlog
+		sudo apt install "$2"
 		check_exit_code
 	fi
 }
 
-check_7z
+# function to create archive option menu
+archive_menu(){
+	printf "\n\t"$green"What type of archive do you want to create?"$reset"\n"
 
-while [ $fin -ne 0 ]
-do
-	printf "\n\t"$green"Menu-based archive script"$reset"\n"
+	printf "\n\t"$blue"1 - 7z archive"$reset"\n"
+	printf "\n\t"$blue"2 - zip archive"$reset"\n"
+	printf "\n\t"$blue"3 - tar archive"$reset"\n"
+	printf "\n\t"$blue"4 - .tar.gz (compressed)"$reset"\n"
 
-	printf "\t"$blue"1 - Archive (both files and directories)"$reset"\n"
-	printf "\t"$blue"2 - extract (both files and directories)"$reset"\n"
+	printf "\n\t"$yellow"Enter option number (e.g. 1): "$reset
+	read type
 
-	printf "\t"$blue"Enter option (e.g. 1 to archive): "$reset
+	case $type in
+		1)
+			7z a -t7z "$f".7z "$1"
+			check_exit_code;;
+		2)
+		7z a -tzip "$f".zip "$1"
+		check_exit_code;;
+		3)
+			7z a -ttar "$f".tar "$1"
+			check_exit_code;;
+		4)
+			tar -czf "$f".tar.gz "$1"
+			check_exit_code;;
+		*)
+			printf "\n\t"$red"Option doesn't exist, please enter a valid number."$reset
+			exit 2
+	esac
+}
 
-	read opt
+# function to archive/extract files
+handle_files(){
+	# get basename of directory or file
+	f="$(basename "$1")"
+	if [ -f "$1" ]
+	then
+		# in case arg is a file, get name without extension
+		f="${f%.*}"
+	fi
 
-	case $opt in
-		1) printf "\t"$blue"Enter path to file or dir: "$reset
-		   read path
-		   files=$(basename $path)
-		   7z a -t7z $files.7z $path
-done
+	if file "$1" | grep -E -q -i '(tar)|(gzip)'
+	then
+		tar -xf "$1"
+	elif file "$1" | grep -E -q -i 'archive'
+	then
+		7z e "$1" -o./"$f"
+		check_exit_code
+	elif [ -d "$1" -o -f "$1" ]
+	then
+		archive_menu "$1"
+	fi
+}
 
-
-
+check_cmd file file
+check_cmd 7z "p7zip-rar"
+check_cmd tar tar
+handle_files "$1"
