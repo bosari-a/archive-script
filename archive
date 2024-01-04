@@ -30,7 +30,7 @@ check_exit_code(){
 check_cmd(){
 	if ! command -v "$1"
 	then
-		echo "installing p7zip-rar..."
+		echo "installing $2..."
 		sudo apt install "$2"
 		check_exit_code
 	fi
