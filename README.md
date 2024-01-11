@@ -36,7 +36,7 @@ As you may have noticed, the command detects whether the file/directory in the g
 
 When archiving, you will be prompted with a menu:
 
-![archive menu options](https://github.com/bosari-a/archive-script/assets/menu.png)
+![archive menu options](https://raw.githubusercontent.com/bosari-a/archive-script/main/assets/menu.png)
 
 You can then enter the number representing the type of archive you want to create and press enter. The resulting archive will be at `./your_file_or_directory_name.{type_of_archive}`. E.g. `./some_name.tar.gz` if you entered `4`.
 
